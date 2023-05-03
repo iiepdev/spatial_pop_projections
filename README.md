@@ -3,9 +3,8 @@
 This is the methodology used to project spatialized school-age populations
 until 2030, based on UN SALB boundaries and WorldPop gridded population
 estimates. The projections are adjusted to national population projections, and
-then transformed into school-age groups with this plugin https://github.com/
-iiepdev/SSAP-QGIS-plugin based on this methodology https://github.com/iiepdev/
-Spatialized-school-age-populations.
+then transformed into school-age groups with this plugin https://github.com/iiepdev/SSAP-QGIS-plugin
+based on this methodology https://github.com/iiepdev/Spatialized-school-age-populations.
 
 The first use case is Togo.
 
@@ -38,12 +37,11 @@ and look for the jupyter url in the output.
 
 ## Analysis workflow and structure 
 
-All of the analysis components are scripted and found in the `scripts/
-` directory. The files meant to be run as scripts are at the top-level
+All of the analysis components are scripted and found in the `scripts/`
+directory. The files meant to be run as scripts are at the top-level
 of the directory, while the functions used by the scripts are stored in
 their respective packages. In addition, a minimal example of the projection
-methodology is available as an interactive notebook in `notebooks/
-example.ipynb`.
+methodology is available as an interactive notebook in `notebooks/example.ipynb`.
 
 Below are brief descriptions of the main analysis steps, and how to run them.
 
