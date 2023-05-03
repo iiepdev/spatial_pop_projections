@@ -1,0 +1,6 @@
+import os
+
+
+def get_rasters_in_directory(directory):
+    """A function to get all raster filenames from a firectory"""
+    return [name for name in os.listdir(directory) if name.endswith(".tif")]

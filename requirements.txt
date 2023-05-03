@@ -1,0 +1,14 @@
+pandas
+geopandas
+rasterio
+jupyterlab
+numpy
+requests
+matplotlib
+scikit-learn
+geocube
+pandarallel
+openpyxl
+
+invoke
+black
