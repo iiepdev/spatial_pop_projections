@@ -2,11 +2,7 @@ import numpy as np
 
 
 def get_adjusted_prediction(
-    year,
-    observation_timeseries,
-    observation_years,
-    reference_population,
-    output_shape
+    year, observation_timeseries, observation_years, reference_population, output_shape
 ):
     predict_arr = get_prediction(
         np.array(observation_years), observation_timeseries, year
