@@ -9,3 +9,4 @@ openpyxl
 
 invoke
 black
+pytest
