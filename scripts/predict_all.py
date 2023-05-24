@@ -6,11 +6,12 @@ import pandas as pd
 
 from raster_processing.clip import clip
 from data_analysis.get_prefec_projection import get_prefec_projection
+from data_analysis.normalize_string import normalize_input_strings
 from data_analysis.predict_population import (
     solve_intercepts_and_slopes,
     get_adjusted_prediction,
 )
-from data_analysis.normalize_string import normalize_input_strings
+from data_analysis.reshape import shape_image_array_to_time_series
 
 
 AGE_GROUPS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
@@ -45,7 +46,7 @@ def main():
                     INPUT_RASTER_DIRECTORY,
                     area=prefec_shape,
                 )
-                time_series = shape_image_array_to_timeseries(
+                time_series = shape_image_array_to_time_series(
                     images, n_observations=len(OBSERVATION_YEARS)
                 )
                 intercepts, slopes = solve_intercepts_and_slopes(
@@ -114,12 +115,6 @@ def read_and_clip_rasters_to_list(raster_names, directory, region):
             image, meta = clip(raster, region.geometry)
             images.append(image[0])
     return images, meta
-
-
-def shape_image_array_to_timeseries(image_array, n_observations):
-    stack = np.dstack(image_array)
-    reshaped = stack.reshape((-1, n_observations))
-    return reshaped
 
 
 def format_filepath(directory, sex, age_group, year, region):
