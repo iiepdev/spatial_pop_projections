@@ -6,12 +6,15 @@ import pandas as pd
 
 from raster_processing.clip import clip
 from data_analysis.get_prefec_projection import get_prefec_projection
-from data_analysis.predict_population import get_adjusted_prediction
+from data_analysis.predict_population import (
+    solve_intercepts_and_slopes,
+    get_adjusted_prediction,
+)
 from data_analysis.normalize_string import normalize_input_strings
 
 
 AGE_GROUPS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
-KNOWN_YEARS = [2000, 2005, 2010, 2015, 2020]
+OBSERVATION_YEARS = [2000, 2005, 2010, 2015, 2020]
 PREDICTION_YEARS = [2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030]
 INPUT_RASTER_DIRECTORY = Path("./data/output/population_grids_togo/")
 OUTPUT_RASTER_DIRECTORY = Path(f"./data/output/predictions/prefectures/")
@@ -35,15 +38,19 @@ def main():
         ]
         for age_group in AGE_GROUPS:
             for sex in ["m", "f"]:
-                raster_names = get_raster_names(sex, age_group, KNOWN_YEARS)
-                images, meta = read_rasters_to_array(
-                    raster_names,
-                    INPUT_RASTER_DIRECTORY,
+                images, meta = get_input_rasters(
+                    sex,
                     age_group,
+                    OBSERVATION_YEARS,
+                    INPUT_RASTER_DIRECTORY,
                     area=prefec_shape,
                 )
                 time_series = shape_image_array_to_timeseries(
-                    images, n_observations=len(KNOWN_YEARS)
+                    images, n_observations=len(OBSERVATION_YEARS)
+                )
+                intercepts, slopes = solve_intercepts_and_slopes(
+                    periods=OBSERVATION_YEARS,
+                    time_series=time_series,
                 )
                 for year in PREDICTION_YEARS:
                     reference_population = get_prefec_projection(
@@ -54,16 +61,27 @@ def main():
                         sex,
                     )
                     adjusted_prediction = get_adjusted_prediction(
-                        year,
-                        observation_timeseries=time_series,
-                        observation_years=KNOWN_YEARS,
-                        reference_population=reference_population,
+                        intercepts,
+                        slopes,
+                        predict_year=year,
+                        reference_sum=reference_population,
                         output_shape=images[0].shape,  # all images have same shape
                     )
                     out_path = format_filepath(
                         OUTPUT_RASTER_DIRECTORY, sex, age_group, year, prefec_name
                     )
                     save_to_raster(out_path, adjusted_prediction, meta)
+
+
+def get_input_rasters(sex, age_group, observation_years, directory, area):
+    raster_names = get_raster_names(sex, age_group, observation_years)
+    images, meta = read_rasters_to_array(
+        raster_names,
+        directory,
+        age_group,
+        area,
+    )
+    return images, meta
 
 
 def get_raster_names(sex, age_group, years):
