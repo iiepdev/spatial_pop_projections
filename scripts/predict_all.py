@@ -6,16 +6,20 @@ import pandas as pd
 
 from raster_processing.clip import clip
 from data_analysis.get_prefec_projection import get_prefec_projection
-from data_analysis.predict_population import predict_population
-from data_analysis.normalize_string import normalize_string_col
+from data_analysis.predict_population import (
+    solve_intercepts_and_slopes,
+    get_adjusted_prediction,
+)
+from data_analysis.normalize_string import normalize_input_strings
 
 
 AGE_GROUPS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
-KNOWN_YEARS = [2000, 2005, 2010, 2015, 2020]
+OBSERVATION_YEARS = [2000, 2005, 2010, 2015, 2020]
 PREDICTION_YEARS = [2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030]
 INPUT_RASTER_DIRECTORY = Path("./data/output/population_grids_togo/")
 OUTPUT_RASTER_DIRECTORY = Path(f"./data/output/predictions/prefectures/")
-TOGO_BORDERS = gpd.read_file(Path("./data/input/borders/togo/salb_borders.zip"))
+PREFECTURES = gpd.read_file(Path("./data/input/borders/togo/salb_borders.zip"))
+PREFECTURE_NAME_COLUMN = "adm2nm"
 POPULATION_PROJECTIONS = pd.read_excel(
     Path("./data/input/population_projections/Project_Prefect_INSEED.xlsx"),
     sheet_name=None,
@@ -25,88 +29,97 @@ POPULATION_PROJECTIONS = pd.read_excel(
 
 
 def main():
-    normalize_dataframe_strings(POPULATION_PROJECTIONS, TOGO_BORDERS)
-    prefectures = TOGO_BORDERS["adm2nm"].values
-    for prefec_name in prefectures:
-        region = TOGO_BORDERS.loc[TOGO_BORDERS["adm2nm"] == prefec_name]
+    normalize_input_strings(
+        POPULATION_PROJECTIONS, PREFECTURES, prefec_name_col=PREFECTURE_NAME_COLUMN
+    )
+    for prefec_name in PREFECTURES[PREFECTURE_NAME_COLUMN].values:
+        prefec_shape = PREFECTURES.loc[
+            PREFECTURES[PREFECTURE_NAME_COLUMN] == prefec_name
+        ]
         for age_group in AGE_GROUPS:
             for sex in ["m", "f"]:
-                raster_names = get_raster_names(sex, age_group)
-                images, meta = get_image_array(age_group, raster_names, region)
-                reshaped = stack_and_shape_image_array(images)
+                images, meta = get_input_rasters(
+                    sex,
+                    age_group,
+                    OBSERVATION_YEARS,
+                    INPUT_RASTER_DIRECTORY,
+                    area=prefec_shape,
+                )
+                time_series = shape_image_array_to_timeseries(
+                    images, n_observations=len(OBSERVATION_YEARS)
+                )
+                intercepts, slopes = solve_intercepts_and_slopes(
+                    periods=OBSERVATION_YEARS,
+                    time_series=time_series,
+                )
                 for year in PREDICTION_YEARS:
-                    pop_projection = get_prefec_projection(
+                    reference_population = get_prefec_projection(
                         POPULATION_PROJECTIONS,
                         prefec_name,
                         year,
                         age_group,
                         sex,
                     )
-                    if not pop_projection:
-                        print(
-                            f"no projection for {prefec_name, age_group, sex, year}, moving to next"
-                        )
-                        break
-                    predict_arr = predict_population(
-                        np.array(KNOWN_YEARS), reshaped, year
+                    adjusted_prediction = get_adjusted_prediction(
+                        intercepts,
+                        slopes,
+                        predict_year=year,
+                        reference_sum=reference_population,
+                        output_shape=images[0].shape,  # all images have same shape
                     )
-                    predict_arr = predict_arr.reshape(images[0].shape)
-                    adjusted_arr = adjust_to_projection(predict_arr, pop_projection)
                     out_path = format_filepath(
                         OUTPUT_RASTER_DIRECTORY, sex, age_group, year, prefec_name
                     )
-                    save_to_raster(out_path, adjusted_arr, meta)
+                    save_to_raster(out_path, adjusted_prediction, meta)
 
 
-def normalize_dataframe_strings(projection_excel: dict, border_gdf: gpd.GeoDataFrame):
-    for sheet, df in projection_excel.items():
-        df.iloc[:, 0] = normalize_string_col(df.iloc[:, 0])
-    border_gdf["adm2nm"] = normalize_string_col(border_gdf["adm2nm"])
+def get_input_rasters(sex, age_group, observation_years, directory, area):
+    raster_names = get_raster_names(sex, age_group, observation_years)
+    images, meta = read_rasters_to_array(
+        raster_names,
+        directory,
+        age_group,
+        area,
+    )
+    return images, meta
 
 
-def get_raster_names(sex, age_group):
-    raster_names = [f"{sex}_{age_group}_{year}.tif" for year in KNOWN_YEARS]
+def get_raster_names(sex, age_group, years):
+    raster_names = [f"{sex}_{age_group}_{year}.tif" for year in years]
     if age_group == 0:
-        raster_names = zip(
-            raster_names, [f"{sex}_1_{year}.tif" for year in KNOWN_YEARS]
-        )
+        raster_names = zip(raster_names, [f"{sex}_1_{year}.tif" for year in years])
     return raster_names
 
 
-def get_image_array(age_group, raster_names, region):
+def read_rasters_to_array(raster_names, directory, age_group, area):
     if age_group == 0:
         images = []
         for name_tuple in raster_names:
-            images_to_sum, meta = read_and_clip_rasters_to_list(name_tuple, region)
+            images_to_sum, meta = read_and_clip_rasters_to_list(
+                name_tuple, directory, area
+            )
             summed = images_to_sum[0] + images_to_sum[1]
             images.append(summed)
     else:
-        images, meta = read_and_clip_rasters_to_list(raster_names, region)
+        images, meta = read_and_clip_rasters_to_list(raster_names, directory, area)
     images = np.array(images)
     images[images < 0] = np.nan
     return images, meta
 
 
-def read_and_clip_rasters_to_list(raster_names, region):
-    out_list = []
+def read_and_clip_rasters_to_list(raster_names, directory, region):
+    images = []
     for name in raster_names:
-        with rasterio.open(Path(INPUT_RASTER_DIRECTORY / name)) as raster:
+        with rasterio.open(Path(directory / name)) as raster:
             image, meta = clip(raster, region.geometry)
-            out_list.append(image[0])
-    return out_list, meta
+            images.append(image[0])
+    return images, meta
 
 
-def stack_and_shape_image_array(image_array):
+def shape_image_array_to_timeseries(image_array, n_observations):
     stack = np.dstack(image_array)
-    reshaped = stack.reshape((-1, len(KNOWN_YEARS)))
+    reshaped = stack.reshape((-1, n_observations))
     return reshaped
-
-
-def adjust_to_projection(predicted_array, pop_projection):
-    predicted_sum = np.nansum(predicted_array)
-    multiplier = pop_projection / predicted_sum
-    adjusted_arr = np.multiply(predicted_array, multiplier)
-    return adjusted_arr
 
 
 def format_filepath(directory, sex, age_group, year, region):
