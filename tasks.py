@@ -8,4 +8,9 @@ def jupyter(ctx):
 
 @task
 def format(ctx):
-    ctx.run("black .", pty=True)
+    ctx.run("black --extend-exclude scripts/tests/ .", pty=True)
+
+
+@task
+def test(ctx):
+    ctx.run("pytest scripts/", pty=True)
