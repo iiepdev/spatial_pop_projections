@@ -1,3 +1,4 @@
+from pathlib import Path
 from downloading.download import download_parallel
 
 
@@ -13,8 +14,16 @@ def download_rasters(
     countries: list,
     years: list,
     age_groups: list,
-    target_directory: str,
+    target_directory: Path,
 ):
+    """Downloads population rasters from worldpop.org
+
+    Args:
+        countries: list of countries to download data from
+        years: list of years to download data from
+        age_groups: a list of age groups to include
+        target_directory: where to save result
+    """
     urls_with_paths = _get_urls_with_paths(
         countries, years, age_groups, target_directory
     )
@@ -43,4 +52,4 @@ def _format_url(country, year, filename):
 
 
 def _format_path(target_directory, filename):
-    return f"{target_directory}/{filename}"
+    return Path(target_directory / filename)

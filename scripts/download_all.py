@@ -1,3 +1,4 @@
+from pathlib import Path
 from downloading.download import download_from_url
 from downloading.worldpop import download_rasters
 
@@ -26,13 +27,13 @@ def main():
             75,
             80,
         ],
-        target_directory="./data/input/worldpop_rasters",
+        target_directory=Path("./data/input/worldpop_rasters"),
     )
 
     download_from_url(
         args=[
             "https://geoportal.un.org/arcgis/sharing/rest/content/items/fc0d66dc47114c79abe228ae7e98f973/data",
-            "./data/input/borders/togo/salb_borders.zip",
+            Path("./data/input/borders/togo/salb_borders.zip"),
         ]
     )
 
