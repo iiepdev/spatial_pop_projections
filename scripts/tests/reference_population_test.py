@@ -2,7 +2,7 @@ from pathlib import Path
 import pytest
 import pandas as pd
 
-from scripts.data_analysis.get_prefec_projection import get_prefec_projection
+from scripts.data_analysis.get_reference_population import get_reference_population
 
 
 REFERENCE_PROJECTIONS = pd.read_excel(
@@ -14,5 +14,5 @@ REFERENCE_PROJECTIONS = pd.read_excel(
 
 
 def test_correct_value():
-    value = get_prefec_projection(REFERENCE_PROJECTIONS, "est-mono", 2024, 20, "f")
+    value = get_reference_population(REFERENCE_PROJECTIONS, "est-mono", 2024, 20, "f")
     assert int(value) == 8042  # manually checked from input file

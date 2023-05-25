@@ -5,7 +5,7 @@ import geopandas as gpd
 import pandas as pd
 
 from raster_processing.clip import clip
-from data_analysis.get_prefec_projection import get_prefec_projection
+from data_analysis.get_reference_population import get_reference_population
 from data_analysis.normalize_string import normalize_input_strings
 from data_analysis.predict_population import (
     solve_intercepts_and_slopes,
@@ -57,7 +57,7 @@ def main():
                     time_series=time_series,
                 )
                 for year in PREDICTION_YEARS:
-                    reference_population = get_prefec_projection(
+                    reference_population = get_reference_population(
                         REFERENCE_PROJECTIONS,
                         prefec_name,
                         year,
