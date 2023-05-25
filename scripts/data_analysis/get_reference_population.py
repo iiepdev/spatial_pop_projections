@@ -1,8 +1,8 @@
 AGE_GROUPS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
 
-def get_prefec_projection(projections, prefec, year, age_group, sex):
-    """A function for extracting prefecture population projections
+def get_reference_population(projections, prefec, year, age_group, sex):
+    """A function for extracting prefecture-level population projections
 
     This is highly specific to the excact excel file used in the togo analysis,
     and will need a redo if another type of projection data is used.
