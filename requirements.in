@@ -1,0 +1,13 @@
+pandas
+geopandas
+rasterio
+jupyterlab
+numpy
+requests
+matplotlib
+openpyxl
+
+invoke
+black
+pytest
+pip-tools
