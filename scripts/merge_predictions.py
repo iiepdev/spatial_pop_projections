@@ -4,7 +4,7 @@ from raster_processing.get_rasters_in_directory import get_rasters_in_directory
 
 
 READ_PATH = Path("./data/output/predictions/prefectures/")
-WRITE_PATH = Path("./data/output/predictions/togo/")
+WRITE_PATH = Path("./data/output/predictions/country/")
 
 
 def main():

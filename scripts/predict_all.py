@@ -18,14 +18,14 @@ AGE_GROUPS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 OBSERVATION_YEARS = [2000, 2005, 2010, 2015, 2020]
 PREDICTION_YEARS = [2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030]
 
-INPUT_RASTER_DIRECTORY = Path("./data/output/population_grids_togo/")
+INPUT_RASTER_DIRECTORY = Path("./data/output/clipped_population_grids/")
 OUTPUT_RASTER_DIRECTORY = Path(f"./data/output/predictions/prefectures/")
 
-PREFECTURES = gpd.read_file(Path("./data/input/borders/togo/salb_borders.zip"))
+PREFECTURES = gpd.read_file(Path("./data/input/prefecture_shapes/salb_borders.zip"))
 PREFECTURE_NAME_COLUMN = "adm2nm"
 
 REFERENCE_PROJECTIONS = pd.read_excel(
-    Path("./data/input/population_projections/Project_Prefect_INSEED.xlsx"),
+    Path("./data/input/reference_projections/Project_Prefect_INSEED.xlsx"),
     sheet_name=None,
     skiprows=141,  # We dont want lomé-specific data
     usecols=[0, 1, 2],  # We just need the age, m, f columns

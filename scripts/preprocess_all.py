@@ -28,9 +28,9 @@ def create_all_mosaics():
 
 
 def clip_all_mosaics():
-    SHAPES_PATH = Path("./data/input/borders/togo/salb_borders.zip")
+    SHAPES_PATH = Path("./data/input/prefecture_shapes/salb_borders.zip")
     MOSAICS_PATH = Path("./data/output/mosaics/")
-    WRITE_PATH = Path("./data/output/population_grids_togo/")
+    WRITE_PATH = Path("./data/output/clipped_population_grids/")
 
     shapes = gpd.read_file(SHAPES_PATH).geometry
     filenames = get_rasters_in_directory(MOSAICS_PATH)

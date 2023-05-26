@@ -33,7 +33,7 @@ def main():
     download_from_url(
         args=[
             "https://geoportal.un.org/arcgis/sharing/rest/content/items/fc0d66dc47114c79abe228ae7e98f973/data",
-            Path("./data/input/borders/togo/salb_borders.zip"),
+            Path("./data/input/prefecture_shapes/salb_borders.zip"),
         ]
     )
 
