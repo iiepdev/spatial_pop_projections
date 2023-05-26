@@ -4,7 +4,7 @@ This is the methodology used to project spatialized school-age populations
 until 2030, based on UN SALB boundaries and WorldPop gridded population
 estimates. The projections are adjusted to national population projections, and
 then transformed into school-age groups with this [plugin](https://github.com/iiepdev/SSAP-QGIS-plugin)
-based on this [methodology](https://github.com/iiepdev/Spatialized-school-age-populations)
+based on this [methodology](https://github.com/iiepdev/Spatialized-school-age-populations).
 
 The first use case is Togo.
 
@@ -117,7 +117,7 @@ python scripts/predict_all.py
 - Find an interactive axample of how creating one prediction works in
 `notebooks/example.ipynb`
 
-### Step 3 - merge projections
+### Step 4 - merge projections
 
 - Merge all prefecture-level projections to get the projections for the entire
   Togo (all different age, sex and year combinations).
